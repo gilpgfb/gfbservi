@@ -96,7 +96,7 @@
              * se ejecuta en otro hilo y devuelve una Promise. Con await espera
              * a que termine este proceso. */
             const texto = await respuestaHttp.text();
-            texto => alert(texto);
+            alert(texto);
           } else {
             /* En esta parte del if, la conexión termina con errores. Se
              * lanza una excepción que es atrapada por la función del
