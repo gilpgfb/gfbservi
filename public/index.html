@@ -61,52 +61,53 @@
         };
       }
 
-      /** Envía los datos a la función en Internet. */
-      function saludaHttp() {
-        const modelo = leeModelo();
-        /* La función fetch envía los datos al servidor. El texto que recibe como
-         * parámetro es la url que se invoca. El signo de interrogación "?"
-         * permite pasarle parámetros y encodeURIComponent formatea la
-         * información para que se puede colocar en la URL. El signo "&" separa
-         * los parámetros. En este caso se envían los parámetros "nombre1" y
-         * "nombre2", que llevan los datos del modelo.
-         * No se espera a que termine la comunicación y pasa a la siguiente
-         * instrucción, terminando la invocación de saludaHttp. Cuando la
-         * comunicación termina en un momento posterior, se invoca una de las
-         * funciones registradas con then y catch. */
-        fetch("saludo?nombre1=" + encodeURIComponent(modelo.nombre1)
-          + "&nombre2=" + encodeURIComponent(modelo.nombre2))
-          /* then recibe una función que se ejecuta cuando la comunicación con
-           * el servidor haya terminado exitosamente. */
-          .then(
-            /** Función que se ejecuta cuando la comunicación con el servidor
-             * termina exitosamente.
-             * @param {Response} respuestaHttp el resultado de la conexión */
-            respuestaHttp => {
-              /* La property ok de la respuesta vale true si la conexión terminó
-               * con éxito. */
-              if (respuestaHttp.ok) {
-                /* En esta parte del if, la conexión terminó con éxito. Hay que
-                 * mostrar el texto del servidor. respuestaHttp.text() devuelve
-                 * una promise con el texto recibido; dicha promise se devuelve
-                 * como resultado de esta función. */
-                return respuestaHttp.text();
-              } else {
-                /* En esta parte del if, la conexión termina con errores. Se
-                 * lanza una excepción que es atrapada por la función del
-                 * .catch en la línea 117. La expresión respuestaHttp.statusText
-                 * devuelve un texto describiendo el error, que normalmente está
-                 * en inglés. */
-                throw new Error(respuestaHttp.statusText)
-              }
-            })
-          /* La función del .then anterior, devuelve una promise; cuando esta
-           * termina de ejecutarse, el valor que devuelve se le pasa a la
-           * función de este then. */
-          .then(texto => alert(texto))
-          /* Cuando se genere una excepción en cualquier punto de la cadena
-           * de operaciones, se invoca la función que recibe catch. */
-          .catch(e => alert(e.message));
+      /** Envía los datos a la función en Internet. El modificador async indica
+       * que la función probablemente no termine en el hilo principal y algunas
+       * de sus instrucciones continuen en otro hilo. En este caso, como la
+       * comunicación con el servidor puede ser tardada se realiza en otro hilo.
+       * Se devuelve un objeto de tipo Promise que sirve para saber cuando la
+       * función termina correctamente o con error en algún momento futuro.
+       * @returns {Promise} para indicar cuando termina correctamente o con
+       *  error. */
+      async function saludaHttp() {
+        try {
+          const modelo = leeModelo();
+          /** La función fetch envía los datos al servidor. El texto que recibe
+           * como parámetro es la url que se invoca. El signo de interrogación
+           * "?" permite pasarle parámetros y encodeURIComponent formatea la
+           * información para que se puede colocar en la URL. El signo "&"
+           * separa los parámetros. En este caso se envían los parámetros
+           * "nombre1" y "nombre2", que llevan los datos del modelo.
+           * fetch lanza la comunicación con el servidor en otro hilo, devuelve
+           * una Promise para saber en que momento termina y trata de seguir a
+           * la siguiente instrucción antes que la comunicación termine.
+           * El operador await fuerza a esperar que la Promise indique el final
+           * de la operación y toma la respuesta devuelta por el servidor.
+           * @type {Response} */
+          const respuestaHttp =
+            await fetch("saludo?nombre1=" + encodeURIComponent(modelo.nombre1)
+              + "&nombre2=" + encodeURIComponent(modelo.nombre2));
+          /* La property ok de la respuesta vale true si la conexión terminó
+           * con éxito. */
+          if (respuestaHttp.ok) {
+            /* En esta parte del if, la conexión terminó con éxito. Hay que
+             * mostrar el texto del servidor usando la instrucción
+             * respuestaHttp.text(); como este proceso puede ser tardado,
+             * se ejecuta en otro hilo y devuelve una Promise. Con await espera
+             * a que termine este proceso. */
+            const texto = await respuestaHttp.text();
+            texto => alert(texto);
+          } else {
+            /* En esta parte del if, la conexión termina con errores. Se
+             * lanza una excepción que es atrapada por la función del
+             * catch en la línea 109. La expresión respuestaHttp.statusText
+             * devuelve un texto describiendo el error, que normalmente está
+             * en inglés. */
+            throw new Error(respuestaHttp.statusText)
+          }
+        } catch (e) {
+          e => alert(e.message)
+        }
       }
     </script>
   </body>
