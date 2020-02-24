@@ -8,58 +8,16 @@
   </head>
   <body>
     <h1>Servicios</h1>
-    <form action="javascript:saludaHilo();">
-      <p><input type="text" id="nombre1" required placeholder="Nombre 1"></p>
-      <p><input type="text" id="nombre2" required placeholder="Nombre 2"></p>
+    <form action="javascript:saludaHttp();">
+      <p><input type="text" id="nombre1" placeholder="Nombre 1"></p>
+      <p><input type="text" id="nombre2" placeholder="Nombre 2"></p>
       <p>
-        <button type="submit">Saludar (Hilos)</button>
-        <button type="button" onclick="saludaHttp();">Saludar (Http)</button>
+        <button type="submit">Saludar</button>
       </p>
       <footer>Copyright &copy; 2020 Gilberto Pacheco Gallegos.</footer>
     </form>
     <script>
       //@ts-check
-      /* Crea un worker que cuyo código fuente está en el archivo "wwSaldo.js" y
-       * se ejecuta en un hilo independiente. */
-      const hilo = new Worker("wwSaludo.js");
-
-      /* Muchos objetos de JavaScript reciben eventos, tales como un clic, la
-       * presión de una tecla, el movimiento del ratón sobre ellos, la recepción
-       * de mensajes, etc. Los event listener son funciones que se invocan cuando
-       * alguno de ellos sucede.
-       * El método addEventListener de un element, asocia un evento, como
-       * "click" (hacer clic en un element), "input" (presionar una tecla) o
-       * "message" (la recepción de un mensaje enviado por un hilo") con
-       * una función event listener. En este caso, se declara que al recibir un
-       * mensaje enviado por el "hilo", se muestren los datos que envía el hilo.
-       * El parámeto evt contiene la descripción del evento y "evt.data" son los
-       * datos que envía el hilo. */
-      hilo.addEventListener("message", evt => alert(evt.data));
-
-      /** Envía datos al hilo para que genere un saludo. */
-      function saludaHilo() {
-        /* Toma los datos capturados en la interfaz gráfica y arma un objeto
-         * con las property nombre1 y nombre2. */
-        const modelo = leeModelo();
-        // Envía los datos al hilo.
-        hilo.postMessage(modelo);
-      }
-
-      /** Toma los datos capturados en la interfaz gráfica y arma un objeto
-       * con las property nombre1 y nombre2.
-       * @returns {{nombre1:string, nombre2:string}} los datos capturados. */
-      function leeModelo() {
-        // Lo que está entre llaves es el objeto.
-        return {
-          /* nombre1: indica el nombre de la property
-           * nombre1.value.trim() toma la captura de id="nombre1" y le quita los
-           *        espacios y saltos de línea al inicio y al final. */
-          // @ts-ignore
-          nombre1: nombre1.value.trim(),
-          // @ts-ignore
-          nombre2: nombre2.value.trim()
-        };
-      }
 
       /** Envía los datos a la función en Internet. El modificador async indica
        * que la función probablemente no termine en el hilo principal y algunas
@@ -71,13 +29,14 @@
        *  error. */
       async function saludaHttp() {
         try {
-          const modelo = leeModelo();
           /** La función fetch envía los datos al servidor. El texto que recibe
            * como parámetro es la url que se invoca. El signo de interrogación
            * "?" permite pasarle parámetros y encodeURIComponent formatea la
            * información para que se puede colocar en la URL. El signo "&"
            * separa los parámetros. En este caso se envían los parámetros
-           * "nombre1" y "nombre2", que llevan los datos del modelo.
+           * "nombre1" y "nombre2", tomados de la interfaz gráfica.
+           * nombre1.value.trim() toma la captura de id="nombre1" y le quita los
+           *        espacios y saltos de línea al inicio y al final.
            * fetch lanza la comunicación con el servidor en otro hilo, devuelve
            * una Promise para saber en que momento termina y trata de seguir a
            * la siguiente instrucción antes que la comunicación termine.
@@ -85,8 +44,11 @@
            * de la operación y toma la respuesta devuelta por el servidor.
            * @type {Response} */
           const respuestaHttp =
-            await fetch("saludo?nombre1=" + encodeURIComponent(modelo.nombre1)
-              + "&nombre2=" + encodeURIComponent(modelo.nombre2));
+            await fetch("saludo?nombre1="
+              // @ts-ignore
+              + encodeURIComponent(nombre1.value.trim())
+              // @ts-ignore
+              + "&nombre2=" + encodeURIComponent(nombre2.value.trim()));
           /* La property ok de la respuesta vale true si la conexión terminó
            * con éxito. */
           if (respuestaHttp.ok) {
